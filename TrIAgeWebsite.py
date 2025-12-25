@@ -52,7 +52,7 @@ FILENAME = "wasteClass2.pth"
 @st.cache_resource(show_spinner="En train de charger le modèle...")
 def load_model():
     model_path = hf_hub_download(repo_id=REPO_ID, filename=FILENAME)
-    state_dict = torch.load(model_path, weights_only=True)
+    state_dict = torch.load(model_path, weights_only=True, map_location="cpu")
     return state_dict
 
 #Initialize model
