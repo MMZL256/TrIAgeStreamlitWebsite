@@ -55,12 +55,13 @@ def load_model():
     model_path = hf_hub_download(repo_id=REPO_ID, filename=FILENAME)
     state_dict = torch.load(model_path, weights_only=True, map_location="cpu")
     return state_dict
-
-#Initialize model
-wasteClassModel = NeuralNetwork()
-pretrainedModelParams = load_model()
-wasteClassModel.load_state_dict(pretrainedModelParams)
-wasteClassModel.eval()
+@st.cache_resource(show_spinner="En train d'accéder au modèle...")
+def get_model():
+    #Initialize model
+    wasteClassModel = NeuralNetwork()
+    pretrainedModelParams = load_model()
+    wasteClassModel.load_state_dict(pretrainedModelParams)
+    return wasteClassModel
 
 st.title("Opération TrIAge")
 
@@ -71,12 +72,15 @@ wastePicture_buffer = st.camera_input("Prenez une photo de l'objet:",
 output = None
 if wastePicture_buffer is not None: 
     "image input received"
-    wasteImage = Image.open(wastePicture_buffer.getvalue()).convert("RGB")
+    model = get_model()
+    model.eval()
+    "model accessed"
+    wasteImage = Image.open(wastePicture_buffer).convert("RGB")
     "image converted"
     wasteImage = transform(wasteImage)
     "image transformed"
     with torch.no_grad():
-        output = wasteClassModel(wasteImage)
+        output = model(wasteImage)
         "image went through net"
         prediction = torch.max(output)
         "prediction predicted"
