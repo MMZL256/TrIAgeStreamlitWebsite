@@ -71,19 +71,13 @@ wastePicture_buffer = st.camera_input("Prenez une photo de l'objet:",
 
 output = None
 if wastePicture_buffer is not None: 
-    "image input received"
     model = get_model()
     model.eval()
-    "model accessed"
     wasteImage = Image.open(wastePicture_buffer).convert("RGB")
-    "image converted"
     wasteImage = transform(wasteImage)
-    "image transformed"
     with torch.no_grad():
         output = model(wasteImage)
-        "image went through net"
         prediction = torch.max(output)
-        "prediction predicted"
         for index, predicted in enumerate(output):
             if predicted == prediction:
                 predictedClass = classes[index]
