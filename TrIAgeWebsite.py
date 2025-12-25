@@ -70,7 +70,8 @@ wastePicture_buffer = st.camera_input("Prenez une photo de l'objet:",
 
 output = None
 if wastePicture_buffer is not None: 
-    wasteImage = Image.open(wastePicture_buffer).convert("RGB")
+    "image input received"
+    wasteImage = Image.open(wastePicture_buffer.getvalue()).convert("RGB")
     "image converted"
     wasteImage = transform(wasteImage)
     "image transformed"
