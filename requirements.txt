@@ -1,0 +1,7 @@
+streamlit
+torch
+pandas
+torchvision
+PIL
+huggingface_hub
+transformers
