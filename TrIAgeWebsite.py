@@ -48,7 +48,7 @@ class NeuralNetwork(nn.Module):
         return x
 
 REPO_ID = "MMZL/TrIAge"
-FILENAME = "wasteClass2.pth"
+FILENAME = "wasteClass3.pth"
 
 @st.cache_resource(show_spinner="En train de charger le modèle...")
 def load_model():
