@@ -10,6 +10,7 @@ from torchvision.transforms import v2
 from huggingface_hub import hf_hub_download
 from transformers import AutoTokenizer, pipeline
 import kornia
+import camera_input_live 
 
 #Image normalizer transform
 canny = kornia.filters.Canny(low_threshold=0.95, high_threshold=0.99)
@@ -39,7 +40,7 @@ class NeuralNetwork(nn.Module):
     def __init__(self):
         super().__init__()
         #Convolutional stage
-        self.conv1 = nn.Conv2d(3, 32, 5)
+        self.conv1 = nn.Conv2d(1, 32, 5)
         self.pool1 = nn.MaxPool2d(2, 2)
         self.conv2 = nn.Conv2d(32, 64, 5)
         self.pool2 = nn.MaxPool2d(2, 2)
