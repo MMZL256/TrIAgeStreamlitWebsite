@@ -9,14 +9,24 @@ from torchvision import transforms
 from torchvision.transforms import v2
 from huggingface_hub import hf_hub_download
 from transformers import AutoTokenizer, pipeline
+import kornia
 
 #Image normalizer transform
-transform = v2.Compose([
+canny = kornia.filters.Canny(low_threshold=0.95, high_threshold=0.99)
+v2Transform = v2.Compose([
     v2.Resize((224, 224)),
     v2.ToImage(),
     v2.ToDtype(torch.float32, scale=True),
-    v2.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    v2.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    v2.Grayscale(num_output_channels=1)
 ])
+
+def transform(img):
+    img = v2Transform(img)
+    imgbchw = img.unsqueeze(0)
+    _, imgedges = canny(imgbchw)
+    imgchw = imgedges.squeeze(0)
+    return imgchw
 
 #Class names
 classes = ("AluminumFoil", "BananaPeel", "Bottles", "Cans", "Cardboard", "Cups", "FoodWaste",
@@ -48,7 +58,7 @@ class NeuralNetwork(nn.Module):
         return x
 
 REPO_ID = "MMZL/TrIAge"
-FILENAME = "wasteClass3.pth"
+FILENAME = "wasteClass4.pth"
 
 @st.cache_resource(show_spinner="En train de charger le modèle...")
 def load_model():
@@ -66,8 +76,7 @@ def get_model():
 st.title("Opération TrIAge")
 
 enable = st.checkbox("Activer la caméra")
-wastePicture_buffer = st.camera_input("Prenez une photo de l'objet:",
-                             disabled=not enable)
+wastePicture_buffer = st.camera_input("Prenez une photo de l'objet:", disabled=not enable)
 
 output = None
 if wastePicture_buffer is not None: 
