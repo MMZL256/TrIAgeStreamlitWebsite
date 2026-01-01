@@ -10,6 +10,7 @@ from torchvision.transforms import v2
 from huggingface_hub import hf_hub_download
 from transformers import AutoTokenizer, pipeline
 import kornia
+import camera_input_live 
 
 #Image normalizer transform
 canny = kornia.filters.Canny(low_threshold=0.95, high_threshold=0.99)
@@ -29,10 +30,15 @@ def transform(img):
     return imgchw
 
 #Class names
-classes = ("AluminumFoil", "BananaPeel", "Bottles", "Cans", "Cardboard", "Cups", "FoodWaste",
-           "Gobelets", "GobeletsLids", "JuiceBottles", "JuiceBoxes", "MilkBoxes", "Plastic", 
-           "PlasticBags", "Shoes", "SnackPackages", "Straws", "Styrofoam", "UsedBrownPaper",
-           "UsedWhitePaper")
+#classes = ("AluminumFoil", "BananaPeel", "Bottles", "Cans", "Cardboard", "Cups", "FoodWaste",
+#           "Gobelets", "GobeletsLids", "JuiceBottles", "JuiceBoxes", "MilkBoxes", "Plastic", 
+#           "PlasticBags", "Shoes", "SnackPackages", "Straws", "Styrofoam", "UsedBrownPaper",
+#           "UsedWhitePaper")
+
+classes = ("AluminumFoil", "CansLaterals", "CansTops", 
+           "Gobelets", "GobeletsLids", "JuiceBottlesLaterals", "JuiceBottlesTops",
+           "JuiceBoxLaterals", "JuiceBoxTops", "MilkBoxes", "SandwichPackage", "SnackPackages",
+           "UsedPaper", "WaterBottlesLaterals")
 
 #Network architecture
 class NeuralNetwork(nn.Module):
@@ -46,7 +52,7 @@ class NeuralNetwork(nn.Module):
         #Full connections (y=Wx+b)
         self.fc1 = nn.Linear(179776, 1024)
         self.fc2 = nn.Linear(1024, 512)
-        self.fc3 = nn.Linear(512, 20)
+        self.fc3 = nn.Linear(512, 14)
 
     def forward(self, x):
         x = self.pool1(F.relu(self.conv1(x)))
@@ -84,6 +90,7 @@ if wastePicture_buffer is not None:
     model.eval()
     wasteImage = Image.open(wastePicture_buffer).convert("RGB")
     wasteImage = transform(wasteImage)
+    wasteImage
     with torch.no_grad():
         output = model(wasteImage)
         prediction = torch.max(output)
@@ -91,14 +98,14 @@ if wastePicture_buffer is not None:
             if predicted == prediction:
                 predictedClass = classes[index]
                 predictedClass
-                if predictedClass in ["AluminumFoil", "Cardboard", "Cups", "Gobelets", "GobeletsLids",
-                                    "JuiceBottles", "JuiceBoxes", "MilkBoxes", "Plastic", "PlasticBags",
-                                    "SnackPackages", "Straws", "Styrofoam"]:
+                if predictedClass in ["AluminumFoil", "Gobelets", "GobeletsLids", 
+                                      "JuiceBoxLaterals", "JuiceBoxTops", "MilkBoxes", 
+                                      "SandwichPackage", "SnackPackages"]:
                     "Recyclage"
-                if predictedClass in ["BananaPeel", "FoodWaste", "UsedBrownPaper", "UsedWhitePaper"]:
+                if predictedClass in ["UsedPaper"]:
                     "Compost"
-                if predictedClass in ["Bottles", "Cans"]:
+                if predictedClass in ["WaterBottleLaterals", "CansTops", "CansLaterals",
+                                      "JuiceBottlesLaterals", "JuiceBottlesTops"]:
                     "Contenants consignés"
                 if predictedClass in ["Shoes"]:
                     "Déchets"
-
