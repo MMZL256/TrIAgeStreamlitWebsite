@@ -81,6 +81,7 @@ def get_model():
     return wasteClassModel
 
 st.title("Opération TrIAge")
+"Ceci est un site en développement. Modèle présentement utilisé: wasteClassTEST"
 
 enable = st.checkbox("Activer la caméra")
 wastePicture_buffer = st.camera_input("Prenez une photo de l'objet:", disabled=not enable)
