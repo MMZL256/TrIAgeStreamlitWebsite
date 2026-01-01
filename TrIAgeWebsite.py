@@ -10,7 +10,6 @@ from torchvision.transforms import v2
 from huggingface_hub import hf_hub_download
 from transformers import AutoTokenizer, pipeline
 import kornia
-import camera_input_live 
 
 #Image normalizer transform
 canny = kornia.filters.Canny(low_threshold=0.95, high_threshold=0.99)
@@ -109,3 +108,4 @@ if wastePicture_buffer is not None:
                     "Contenants consignés"
                 if predictedClass in ["Shoes"]:
                     "Déchets"
+
