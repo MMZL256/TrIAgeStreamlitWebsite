@@ -25,6 +25,8 @@ def transform(img):
     img = v2Transform(img)
     imgbchw = img.unsqueeze(0)
     _, imgedges = canny(imgbchw)
+    shownEdges = kornia.tensor_to_image(imgedges.byte())
+    shownEdges
     imgchw = imgedges.squeeze(0)
     return imgchw
 
@@ -63,7 +65,7 @@ class NeuralNetwork(nn.Module):
         return x
 
 REPO_ID = "MMZL/TrIAge"
-FILENAME = "wasteClass4.pth"
+FILENAME = "wasteClassTEST.pth"
 
 @st.cache_resource(show_spinner="En train de charger le modèle...")
 def load_model():
@@ -89,7 +91,6 @@ if wastePicture_buffer is not None:
     model.eval()
     wasteImage = Image.open(wastePicture_buffer).convert("RGB")
     wasteImage = transform(wasteImage)
-    wasteImage
     with torch.no_grad():
         output = model(wasteImage)
         prediction = torch.max(output)
@@ -108,4 +109,3 @@ if wastePicture_buffer is not None:
                     "Contenants consignés"
                 if predictedClass in ["Shoes"]:
                     "Déchets"
-
