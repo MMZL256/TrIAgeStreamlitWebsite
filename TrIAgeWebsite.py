@@ -65,7 +65,7 @@ class NeuralNetwork(nn.Module):
         return x
 
 REPO_ID = "MMZL/TrIAge"
-FILENAME = "wasteClassTEST.pth"
+FILENAME = "wasteClassTEST14.pth"
 
 @st.cache_resource(show_spinner="En train de charger le modèle...")
 def load_model():
@@ -78,10 +78,11 @@ def get_model():
     wasteClassModel = NeuralNetwork()
     pretrainedModelParams = load_model()
     wasteClassModel.load_state_dict(pretrainedModelParams)
+    wasteClassModel.eval()
     return wasteClassModel
 
 st.title("Opération TrIAge")
-"Ceci est un site en développement. Modèle présentement utilisé: wasteClassTEST"
+"Ceci est un site en développement. Modèle présentement utilisé: wasteClassTEST14"
 
 enable = st.checkbox("Activer la caméra")
 wastePicture_buffer = st.camera_input("Prenez une photo de l'objet:", disabled=not enable)
@@ -89,7 +90,6 @@ wastePicture_buffer = st.camera_input("Prenez une photo de l'objet:", disabled=n
 output = None
 if wastePicture_buffer is not None: 
     model = get_model()
-    model.eval()
     wasteImage = Image.open(wastePicture_buffer).convert("RGB")
     wasteImage = transform(wasteImage)
     with torch.no_grad():
