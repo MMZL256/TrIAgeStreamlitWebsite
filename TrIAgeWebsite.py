@@ -11,6 +11,8 @@ from huggingface_hub import hf_hub_download
 from transformers import AutoTokenizer, pipeline
 import kornia
 
+#LE MODÈLE
+
 #Image normalizer transform
 canny = kornia.filters.Canny(low_threshold=0.95, high_threshold=0.99)
 v2Transform = v2.Compose([
@@ -26,7 +28,6 @@ def transform(img):
     imgbchw = img.unsqueeze(0)
     _, imgedges = canny(imgbchw)
     shownEdges = kornia.tensor_to_image(imgedges.byte())
-    shownEdges
     imgchw = imgedges.squeeze(0)
     return imgchw
 
@@ -40,6 +41,10 @@ classes = ("AluminumFoil", "CansLaterals", "CansTops",
            "Gobelets", "GobeletsLids", "JuiceBottlesLaterals", "JuiceBottlesTops",
            "JuiceBoxLaterals", "JuiceBoxTops", "MilkBoxes", "SandwichPackage", "SnackPackages",
            "UsedPaper", "WaterBottlesLaterals")
+frclasses = ("Papier aluminium", "Canette d'aluminium (côté)", "Canette d'aluminium (haut)", 
+             "Gobelet", "Couvercle de gobelet", "Bouteille de jus (côté)", "Bouteille de jus (haut)",
+             "Boîte de jus (côté)", "Boîte de jus (haut)", "Carton de lait", "Boîte à sandwich", 
+             "Emballage de plastique métallisé", "Papier usé", "Bouteille d'eau de plastique (côté)")
 
 #Network architecture
 class NeuralNetwork(nn.Module):
@@ -81,12 +86,15 @@ def get_model():
     wasteClassModel.eval()
     return wasteClassModel
 
+#LE SITE
+
+st.set_page_config(page_title="CSL TrIAge", page_icon="♻️", layout="wide")
+
 st.title("Opération TrIAge")
 "Ceci est un site en développement. Modèle présentement utilisé: wasteClassTEST14"
 
 enable = st.checkbox("Activer la caméra")
 wastePicture_buffer = st.camera_input("Prenez une photo de l'objet:", disabled=not enable)
-
 output = None
 if wastePicture_buffer is not None: 
     model = get_model()
@@ -98,15 +106,16 @@ if wastePicture_buffer is not None:
         for index, predicted in enumerate(output):
             if predicted == prediction:
                 predictedClass = classes[index]
-                predictedClass
+                frPredictedClass = frclasses[index]
+                st.write("Type d'objet détecté: " + frPredictedClass)
                 if predictedClass in ["AluminumFoil", "Gobelets", "GobeletsLids", 
                                       "JuiceBoxLaterals", "JuiceBoxTops", "MilkBoxes", 
                                       "SandwichPackage", "SnackPackages"]:
-                    "Recyclage"
+                    st.header(":blue-background[Recyclage]")
                 if predictedClass in ["UsedPaper"]:
-                    "Compost"
+                    st.header(":orange-background[Compost]")
                 if predictedClass in ["WaterBottleLaterals", "CansTops", "CansLaterals",
                                       "JuiceBottlesLaterals", "JuiceBottlesTops"]:
-                    "Contenants consignés"
+                    st.header(":green-background[Contenants consignés]")
                 if predictedClass in ["Shoes"]:
-                    "Déchets"
+                    st.header(":gray-background[Déchets]")
