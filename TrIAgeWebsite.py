@@ -100,6 +100,8 @@ if wastePicture_buffer is not None:
     model = get_model()
     wasteImage = Image.open(wastePicture_buffer).convert("RGB")
     wasteImage = transform(wasteImage)
+    shownTestImage = v2.functional.to_pil_image(wasteImage)
+    shownTestImage
     with torch.no_grad():
         output = model(wasteImage)
         prediction = torch.max(output)
@@ -119,3 +121,4 @@ if wastePicture_buffer is not None:
                     st.header(":green-background[Contenants consignés]")
                 if predictedClass in ["Shoes"]:
                     st.header(":gray-background[Déchets]")
+
