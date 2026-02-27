@@ -10,26 +10,29 @@ from torchvision.transforms import v2
 from huggingface_hub import hf_hub_download
 from transformers import AutoTokenizer, pipeline
 import kornia
+import streamlit_webrtc
+import numpy as np
+import av
+import cv2
+import time
 
 #LE MODÈLE
 
 #Image normalizer transform
-canny = kornia.filters.Canny(low_threshold=0.95, high_threshold=0.99)
+canny = kornia.filters.Canny(low_threshold=0.2, high_threshold=0.25)
 v2Transform = v2.Compose([
     v2.Resize((224, 224)),
     v2.ToImage(),
+    v2.Grayscale(num_output_channels=1),
     v2.ToDtype(torch.float32, scale=True),
-    v2.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    v2.Grayscale(num_output_channels=1)
 ])
 
 def transform(img):
     img = v2Transform(img)
     imgbchw = img.unsqueeze(0)
     _, imgedges = canny(imgbchw)
-    shownEdges = kornia.tensor_to_image(imgedges.byte())
-    imgchw = imgedges.squeeze(0)
-    return imgchw
+    #shownEdges = kornia.tensor_to_image(imgedges.byte())
+    return imgedges.squeeze(0)
 
 #Class names
 #classes = ("AluminumFoil", "BananaPeel", "Bottles", "Cans", "Cardboard", "Cups", "FoodWaste",
@@ -63,7 +66,7 @@ class NeuralNetwork(nn.Module):
     def forward(self, x):
         x = self.pool1(F.relu(self.conv1(x)))
         x = self.pool2(F.relu(self.conv2(x)))
-        x = torch.flatten(x, start_dim=0, end_dim=-1)
+        x = torch.flatten(x, start_dim=1)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
@@ -93,32 +96,55 @@ st.set_page_config(page_title="CSL TrIAge", page_icon="♻️", layout="wide")
 st.title("Opération TrIAge")
 "Ceci est un site en développement. Modèle présentement utilisé: wasteClassTEST14"
 
-enable = st.checkbox("Activer la caméra")
-wastePicture_buffer = st.camera_input("Prenez une photo de l'objet:", disabled=not enable)
-output = None
-if wastePicture_buffer is not None: 
-    model = get_model()
-    wasteImage = Image.open(wastePicture_buffer).convert("RGB")
-    wasteImage = transform(wasteImage)
-    shownTestImage = v2.functional.to_pil_image(wasteImage)
-    shownTestImage
-    with torch.no_grad():
-        output = model(wasteImage)
-        prediction = torch.max(output)
-        for index, predicted in enumerate(output):
-            if predicted == prediction:
-                predictedClass = classes[index]
-                frPredictedClass = frclasses[index]
-                st.write("Type d'objet détecté: " + frPredictedClass)
-                if predictedClass in ["AluminumFoil", "Gobelets", "GobeletsLids", 
-                                      "JuiceBoxLaterals", "JuiceBoxTops", "MilkBoxes", 
-                                      "SandwichPackage", "SnackPackages"]:
-                    st.header(":blue-background[Recyclage]")
-                if predictedClass in ["UsedPaper"]:
-                    st.header(":orange-background[Compost]")
-                if predictedClass in ["WaterBottleLaterals", "CansTops", "CansLaterals",
-                                      "JuiceBottlesLaterals", "JuiceBottlesTops"]:
-                    st.header(":green-background[Contenants consignés]")
-                if predictedClass in ["Shoes"]:
-                    st.header(":gray-background[Déchets]")
+model = get_model()
+model.eval()
+lastProcessTime = 0
+processingInterval = 0.5
+lastOutputArray = None
+lastOutputFrame = None
+def callback(frame):
+    global lastProcessTime, lastOutputArray, lastOutputFrame, processingInterval
+    currentTime = time.time()
+    try:
+        if currentTime - lastProcessTime >= processingInterval or lastOutputArray is None:
+            lastProcessTime = currentTime
 
+            PILimg = frame.to_image() # from VideoFrame to PIL
+            edgeTensor = transform(PILimg) # Transformed to torch tensor chw
+
+            modelInput = edgeTensor.unsqueeze(0) # bchw
+            with torch.no_grad():
+                output = model(modelInput)
+                _, predictionIndex = torch.max(output, dim=1)
+                label = classes[predictionIndex.item()]
+
+            edgeTensor = edgeTensor[0]
+            numpyEdges = (edgeTensor * 255).clamp(0, 255).byte().cpu().numpy() # To suitable np
+            bgrEdges = np.repeat(numpyEdges[:, :, None], 3, axis=2) # to bgr
+            bgrEdges = np.ascontiguousarray(bgrEdges)
+
+            cv2.putText(
+                bgrEdges,
+                label,
+                (20, 40),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1.2,
+                (0, 255, 0),
+                3,
+                cv2.LINE_AA
+            )
+            lastOutputArray = bgrEdges
+            lastOutputFrame = av.VideoFrame.from_ndarray(bgrEdges, format="bgr24")
+        else:
+            if lastOutputArray is not None:
+                lastOutputFrame = av.VideoFrame.from_ndarray(lastOutputArray, format="bgr24")
+    except Exception as e:
+        print(f"Error in callback: {e}")
+        if lastOutputArray is not None:
+            lastOutputFrame = av.VideoFrame.from_ndarray(lastOutputArray, format="bgr24")
+        elif lastOutputFrame is None:
+            blank = np.zeros((224, 224, 3), dtype=np.uint8)
+            lastOutputFrame = av.VideoFrame.from_ndarray(blank, format="bgr24")
+    return lastOutputFrame
+
+streamlit_webrtc.webrtc_streamer(key="theStreamer", video_frame_callback=callback)
