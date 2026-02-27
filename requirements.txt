@@ -9,4 +9,4 @@ kornia
 streamlit_webrtc
 numpy
 av
-opencv-python
+opencv-python-headless
