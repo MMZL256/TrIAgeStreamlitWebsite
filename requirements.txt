@@ -9,5 +9,4 @@ kornia
 streamlit_webrtc
 numpy
 av
-cv2
-time
+opencv-python
