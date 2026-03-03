@@ -10,11 +10,27 @@ from torchvision.transforms import v2
 from huggingface_hub import hf_hub_download
 from transformers import AutoTokenizer, pipeline
 import kornia
-import streamlit_webrtc
-import numpy as np
-import av
-import cv2
-import time
+from PIL import ImageOps
+from streamlit_local_storage import LocalStorage
+
+st.markdown(
+    """
+    <style>
+        /* Target the camera widget container */
+        [data-testid="stCameraInput"] {
+            max-height: none !important;   /* Remove any default max-height */
+            height: auto;                   /* Let height be determined by content */
+        }
+        /* Make the video element fill the width and scale height automatically */
+        [data-testid="stCameraInput"] video {
+            width: 100%;
+            height: auto;
+            max-height: none;               /* Override any video max-height */
+        }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 #LE MODÈLE
 
@@ -66,7 +82,7 @@ class NeuralNetwork(nn.Module):
     def forward(self, x):
         x = self.pool1(F.relu(self.conv1(x)))
         x = self.pool2(F.relu(self.conv2(x)))
-        x = torch.flatten(x, start_dim=1)
+        x = torch.flatten(x, start_dim=0, end_dim=-1)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
@@ -96,55 +112,57 @@ st.set_page_config(page_title="CSL TrIAge", page_icon="♻️", layout="wide")
 st.title("Opération TrIAge")
 "Ceci est un site en développement. Modèle présentement utilisé: wasteClassTEST14"
 
-model = get_model()
-model.eval()
-lastProcessTime = 0
-processingInterval = 0.5
-lastOutputArray = None
-lastOutputFrame = None
-def callback(frame):
-    global lastProcessTime, lastOutputArray, lastOutputFrame, processingInterval
-    currentTime = time.time()
-    try:
-        if currentTime - lastProcessTime >= processingInterval or lastOutputArray is None:
-            lastProcessTime = currentTime
+localStorage = LocalStorage()
+totalNum = localStorage.getItem("total") if localStorage.getItem("total") else 0
+recycled = localStorage.getItem("recycling") if localStorage.getItem("recycling") else 0
+composted = localStorage.getItem("compost") if localStorage.getItem("compost") else 0
+trashed = localStorage.getItem("trash") if localStorage.getItem("trash") else 0
+consigned = localStorage.getItem("consigning") if localStorage.getItem("consigning") else 0
 
-            PILimg = frame.to_image() # from VideoFrame to PIL
-            edgeTensor = transform(PILimg) # Transformed to torch tensor chw
+with st.expander("Voir les statistiques"):
+    typeCol, numCol = st.columns(spec=2, gap=None, width=500)
+    with typeCol:
+        st.write(":rainbow-background[TOTAL] ")
+        st.write(":blue-background[Recyclage] ")
+        st.write(":orange-background[Compost] ")
+        st.write(":green-background[Contenants consignés] ")
+        st.write(":gray-background[Déchets] ")
+    with numCol:
+        st.write(totalNum)
+        st.write(recycled)
+        st.write(composted)
+        st.write(consigned)
+        st.write(trashed)
 
-            modelInput = edgeTensor.unsqueeze(0) # bchw
-            with torch.no_grad():
-                output = model(modelInput)
-                _, predictionIndex = torch.max(output, dim=1)
-                label = classes[predictionIndex.item()]
-
-            edgeTensor = edgeTensor[0]
-            numpyEdges = (edgeTensor * 255).clamp(0, 255).byte().cpu().numpy() # To suitable np
-            bgrEdges = np.repeat(numpyEdges[:, :, None], 3, axis=2) # to bgr
-            bgrEdges = np.ascontiguousarray(bgrEdges)
-
-            cv2.putText(
-                bgrEdges,
-                label,
-                (20, 40),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                1.2,
-                (0, 255, 0),
-                3,
-                cv2.LINE_AA
-            )
-            lastOutputArray = bgrEdges
-            lastOutputFrame = av.VideoFrame.from_ndarray(bgrEdges, format="bgr24")
-        else:
-            if lastOutputArray is not None:
-                lastOutputFrame = av.VideoFrame.from_ndarray(lastOutputArray, format="bgr24")
-    except Exception as e:
-        print(f"Error in callback: {e}")
-        if lastOutputArray is not None:
-            lastOutputFrame = av.VideoFrame.from_ndarray(lastOutputArray, format="bgr24")
-        elif lastOutputFrame is None:
-            blank = np.zeros((224, 224, 3), dtype=np.uint8)
-            lastOutputFrame = av.VideoFrame.from_ndarray(blank, format="bgr24")
-    return lastOutputFrame
-
-streamlit_webrtc.webrtc_streamer(key="theStreamer", video_frame_callback=callback)
+enable = st.checkbox("Activer la caméra")
+wastePicture_buffer = st.camera_input(key="cameraInput", label="Prenez une photo de l'objet:", disabled=not enable)
+output = None
+if wastePicture_buffer is not None: 
+    model = get_model()
+    wasteImage = Image.open(wastePicture_buffer).convert("RGB")
+    wasteImage = ImageOps.exif_transpose(wasteImage)
+    wasteImage = transform(wasteImage)
+    shownTestImage = v2.functional.to_pil_image(wasteImage)
+    shownTestImage
+    with torch.no_grad():
+        output = model(wasteImage)
+        _, index = torch.max(output, dim=0)
+        predictedClass = classes[index.item()]
+        frPredictedClass = frclasses[index.item()]
+        st.write("Type d'objet détecté: " + frPredictedClass)
+        localStorage.setItem("total", totalNum+1, key='set_total')
+        if predictedClass in ["AluminumFoil", "Gobelets", "GobeletsLids", 
+                                "JuiceBoxLaterals", "JuiceBoxTops", "MilkBoxes", 
+                                "SandwichPackage", "SnackPackages"]:
+            st.header(":blue-background[Recyclage]")
+            localStorage.setItem("recycling", recycled+1, key='set_recycling')
+        if predictedClass in ["UsedPaper"]:
+            st.header(":orange-background[Compost]")
+            localStorage.setItem("compost", composted+1, key='set_compost')
+        if predictedClass in ["WaterBottlesLaterals", "CansTops", "CansLaterals",
+                                "JuiceBottlesLaterals", "JuiceBottlesTops"]:
+            st.header(":green-background[Contenants consignés]")
+            localStorage.setItem("consigning", consigned+1, key='set_consigning')
+        if predictedClass in ["Shoes"]:
+            st.header(":gray-background[Déchets]")
+            localStorage.setItem("trash", trashed+1, key="set_trash")
