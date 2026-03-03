@@ -6,7 +6,5 @@ pillow
 huggingface_hub
 transformers
 kornia
-streamlit_webrtc
 numpy
-av
-opencv-python-headless
+streamlit_local_storage
