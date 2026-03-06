@@ -39,56 +39,20 @@ canny = kornia.filters.Canny(low_threshold=0.99, high_threshold=0.999)
 
 v2Transform = v2.Compose([
     v2.Resize((224, 224)),
-    #v2.RandomPhotometricDistort(brightness=(0.875,1.125),
-                                #contrast=(1, 1), 
-                                #saturation=(1, 1),
-                                #hue=(-0.02, 0.02),
-                                #p=0.5),
     v2.ToImage(),
     v2.ToDtype(torch.float32, scale=True),
-    #v2.GaussianNoise(mean=0, sigma=0.05, clip=True),
-    #v2.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    #v2.Grayscale(num_output_channels=1)
 ])
 
 kTransform = nn.Sequential(
-    #kornia.geometry.transform.Resize((224, 224)),
-    #kornia.augmentation.RandomHorizontalFlip(p=0.5),
-    #kornia.augmentation.RandomAffine(degrees=10, translate=(0.05, 0.05),
-                                     #scale=(0.95, 1.05), padding_mode=2),
-    #kornia.augmentation.ColorJitter(brightness=(0.875,1.125),
-                                    #contrast=(1, 1), 
-                                    #saturation=(1, 1),
-                                    #hue=(-0.02, 0.02),
-                                    #p=0.75),
-    #kornia.augmentation.RandomGaussianNoise(mean=0, std=0.05),
     kornia.augmentation.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     kornia.color.RgbToGrayscale()
 )
 
 def transform(img):
-    #img = v2Transform(img)
-    #imgbchw = img.unsqueeze(0)
-    #_, imgedges = canny(imgbchw)
-    #rotatedImage = kTransform(imgedges)
-    #imgchw = imgedges.squeeze(0)
     img = v2Transform(img)
     return img
 
 #Class names
-#classes = ("AluminumFoil", "BananaPeel", "Bottles", "Cans", "Cardboard", "Cups", "FoodWaste",
-#           "Gobelets", "GobeletsLids", "JuiceBottles", "JuiceBoxes", "MilkBoxes", "Plastic", 
-#           "PlasticBags", "Shoes", "SnackPackages", "Straws", "Styrofoam", "UsedBrownPaper",
-#           "UsedWhitePaper")
-
-#classes = ("AluminumFoil", "CansLaterals", "CansTops", 
-#           "Gobelets", "GobeletsLids", "JuiceBottlesLaterals", "JuiceBottlesTops",
-#           "JuiceBoxLaterals", "JuiceBoxTops", "MilkBoxes", "SandwichPackage", "SnackPackages",
-#           "UsedPaper", "WaterBottlesLaterals")
-#frclasses = ("Papier aluminium", "Canette d'aluminium (côté)", "Canette d'aluminium (haut)", 
-#             "Gobelet", "Couvercle de gobelet", "Bouteille de jus (côté)", "Bouteille de jus (haut)",
-#             "Boîte de jus (côté)", "Boîte de jus (haut)", "Carton de lait", "Boîte à sandwich", 
-#             "Emballage de plastique métallisé", "Papier usé", "Bouteille d'eau de plastique (côté)")
 classes = ("BananaPeels", "CansLaterals", "CansTops", "JuiceBottlesLaterals",
         "JuiceBottlesTops", "JuiceBoxLaterals", "JuiceBoxTops", "MilkBoxes", 
         "SnackPackages", "UsedPaper")
@@ -195,3 +159,4 @@ if wastePicture_buffer is not None:
             st.write(composted)
             st.write(consigned)
             st.write(trashed)
+
