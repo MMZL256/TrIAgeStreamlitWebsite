@@ -145,18 +145,19 @@ if wastePicture_buffer is not None:
         shownTestImage
         st.write("Type d'objet détecté: " + frPredictedClass)
         st.write(f"Certitude: {confidence.item()*100}")
-    with st.expander("Voir les statistiques"):
-        typeCol, numCol = st.columns(spec=2, gap=None, width=350)
-        with typeCol:
-            st.write(":rainbow-background[TOTAL] ")
-            st.write(":blue-background[Recyclage] ")
-            st.write(":orange-background[Compost] ")
-            st.write(":green-background[Contenants consignés] ")
-            st.write(":gray-background[Déchets] ")
-        with numCol:
-            st.write(totalNum)
-            st.write(recycled)
-            st.write(composted)
-            st.write(consigned)
-            st.write(trashed)
+with st.expander("Voir les statistiques"):
+    typeCol, numCol = st.columns(spec=2, gap=None, width=350)
+    with typeCol:
+        st.write(":rainbow-background[TOTAL] ")
+        st.write(":blue-background[Recyclage] ")
+        st.write(":orange-background[Compost] ")
+        st.write(":green-background[Contenants consignés] ")
+        st.write(":gray-background[Déchets] ")
+    with numCol:
+        st.write(totalNum)
+        st.write(recycled)
+        st.write(composted)
+        st.write(consigned)
+        st.write(trashed)
+
 
