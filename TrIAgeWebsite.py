@@ -17,16 +17,14 @@ from streamlit_local_storage import LocalStorage
 st.markdown(
     """
     <style>
-        /* Target the camera widget container */
         [data-testid="stCameraInput"] {
-            max-height: none !important;   /* Remove any default max-height */
-            height: auto;                   /* Let height be determined by content */
+            max-height: none !important;
+            height: auto;
         }
-        /* Make the video element fill the width and scale height automatically */
         [data-testid="stCameraInput"] video {
             width: 100%;
             height: auto;
-            max-height: none;               /* Override any video max-height */
+            max-height: none;
         }
     </style>
     """,
@@ -111,6 +109,7 @@ enable = st.checkbox("Activer la caméra")
 wastePicture_buffer = st.camera_input(key="cameraInput", label="Prenez une photo de l'objet:", disabled=not enable)
 output = None
 if wastePicture_buffer is not None: 
+    t0 = time.time()
     model = get_model()
     wasteImage = Image.open(wastePicture_buffer).convert("RGB")
     wasteImage = ImageOps.exif_transpose(wasteImage)
@@ -119,34 +118,45 @@ if wastePicture_buffer is not None:
     _, wasteEdges = canny(wasteImage)
     wasteImage = wasteEdges.repeat(1, 3, 1, 1)
     shownTestImage = v2.functional.to_pil_image(wasteImage.squeeze(0))
+    t1 = time.time()
     with torch.no_grad():
         output = model(wasteImage)
         output = torch.softmax(output, dim=1)
         confidence, index = torch.max(output, dim=1)
-        
+        t2 = time.time()
         predictedClass = classes[index.item()]
         frPredictedClass = frclasses[index.item()]
     localStorage.setItem("total", totalNum+1, key='set_total')
     if predictedClass in ["JuiceBoxLaterals", "JuiceBoxTops", "MilkBoxes", 
                             "SnackPackages"]:
         st.header(":blue-background[Recyclage]")
+        st.write("Type d'objet détecté: " + frPredictedClass)
+        if predictedClass in ["JuiceBoxLaterals", "JuiceBoxTops"]:
+            st.write("La paille en papier va au compost!")
         localStorage.setItem("recycling", recycled+1, key='set_recycling')
     elif predictedClass in ["BananaPeels", "UsedPaper"]:
         st.header(":orange-background[Compost]")
+        st.write("Type d'objet détecté: " + frPredictedClass)
         localStorage.setItem("compost", composted+1, key='set_compost')
     elif predictedClass in ["CansLaterals", "CansTops", "JuiceBottlesLaterals",
                             "JuiceBottlesTops"]:
         st.header(":green-background[Contenants consignés]")
+        st.write("Type d'objet détecté: " + frPredictedClass)
         localStorage.setItem("consigning", consigned+1, key='set_consigning')
     elif predictedClass in ["Shoes"]:
         st.header(":gray-background[Déchets]")
+        st.write("Type d'objet détecté: " + frPredictedClass)
         localStorage.setItem("trash", trashed+1, key="set_trash")
     with st.expander("Voir les détails"):
+        "Image perçue par le modèle:"
         shownTestImage
         st.write("Type d'objet détecté: " + frPredictedClass)
-        st.write(f"Certitude: {confidence.item()*100}")
+        st.write(f"Certitude: {confidence.item()*100:.2f}%")
+        st.write(f"Durée de prétraitement d'image: {t1-t0:.3f} secondes")
+        st.write(f"Durée de d'inférence: {t2-t1:.3f} secondes")
 with st.expander("Voir les statistiques"):
-    typeCol, numCol = st.columns(spec=2, gap=None, width=350)
+    "Voici les statistiques récoltés par cet appareil: "
+    typeCol, numCol = st.columns(spec=2, gap=None, width=300)
     with typeCol:
         st.write(":rainbow-background[TOTAL] ")
         st.write(":blue-background[Recyclage] ")
@@ -159,5 +169,7 @@ with st.expander("Voir les statistiques"):
         st.write(composted)
         st.write(consigned)
         st.write(trashed)
+
+"Dernière mise à jour: 7 mars 2026"
 
 
