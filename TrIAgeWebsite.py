@@ -156,21 +156,22 @@ if wastePicture_buffer is not None:
         st.write(f"Durée de d'inférence: {t2-t1:.3f} secondes")
 with st.expander("Voir les statistiques"):
     "Voici les statistiques récoltés par cet appareil: "
-    typeCol, numCol = st.columns(spec=2, gap=None, width=300)
-    with typeCol:
-        st.write(":rainbow-background[TOTAL] ")
-        st.write(":blue-background[Recyclage] ")
-        st.write(":orange-background[Compost] ")
-        st.write(":green-background[Contenants consignés] ")
-        st.write(":gray-background[Déchets] ")
-    with numCol:
-        st.write(totalNum)
-        st.write(recycled)
-        st.write(composted)
-        st.write(consigned)
-        st.write(trashed)
+    st.write(":rainbow-background[TOTAL] ")
+    st.write(totalNum)
+    st.write(":blue-background[Recyclage] ")
+    st.write(recycled)
+    st.write(":orange-background[Compost] ")
+    st.write(composted)
+    st.write(":green-background[Contenants consignés] ")
+    st.write(consigned)
+    st.write(":gray-background[Déchets] ")
+    st.write(trashed)
+    st.write(":rainbow-background[POINTAGE]")
+    st.write(10*composted + 10*consigned + 5*recycled + trashed)
+    st.write("10 pts par compostable, 10pts par contenant consigné, 5pts par recyclable, 1pt par déchet")
 
 "Dernière mise à jour: 7 mars 2026"
+
 
 
 
