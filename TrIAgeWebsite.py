@@ -13,7 +13,7 @@ from transformers import AutoTokenizer, pipeline
 import kornia
 from PIL import ImageOps
 from streamlit_local_storage import LocalStorage
-
+import time
 st.markdown(
     """
     <style>
@@ -171,5 +171,6 @@ with st.expander("Voir les statistiques"):
         st.write(trashed)
 
 "Dernière mise à jour: 7 mars 2026"
+
 
 
