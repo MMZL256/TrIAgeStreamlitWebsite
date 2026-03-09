@@ -114,6 +114,7 @@ else:
     wastePicture_buffer = st.camera_input(key="cameraInput", label="Prenez une photo de l'objet:", disabled=not enable)
 output = None
 if wastePicture_buffer is not None: 
+    wastePicture_buffer
     t0 = time.time()
     model = get_model()
     wasteImage = Image.open(wastePicture_buffer).convert("RGB")
@@ -170,6 +171,7 @@ with st.expander("Voir les statistiques"):
     st.write("10 points par compostable, 10 points par contenant consigné, 5 points par recyclable, 1 point par déchet")
 
 "Dernière mise à jour: 7 mars 2026"
+
 
 
 
