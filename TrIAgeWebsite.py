@@ -14,6 +14,7 @@ import kornia
 from PIL import ImageOps
 from streamlit_local_storage import LocalStorage
 import time
+from streamlit_back_camera_input import back_camera_input
 st.markdown(
     """
     <style>
@@ -106,7 +107,11 @@ consigned = localStorage.getItem("consigning") if localStorage.getItem("consigni
 
 
 enable = st.checkbox("Activer la caméra")
-wastePicture_buffer = st.camera_input(key="cameraInput", label="Prenez une photo de l'objet:", disabled=not enable)
+backCamera = st.checkbox("Utiliser la caméra arrière")
+if backCamera:
+    wastePicture_buffer = back_camera_input()
+else:
+    wastePicture_buffer = st.camera_input(key="cameraInput", label="Prenez une photo de l'objet:", disabled=not enable)
 output = None
 if wastePicture_buffer is not None: 
     t0 = time.time()
@@ -165,6 +170,7 @@ with st.expander("Voir les statistiques"):
     st.write("10 points par compostable, 10 points par contenant consigné, 5 points par recyclable, 1 point par déchet")
 
 "Dernière mise à jour: 7 mars 2026"
+
 
 
 
