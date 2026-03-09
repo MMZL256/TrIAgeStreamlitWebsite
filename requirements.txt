@@ -8,3 +8,4 @@ transformers
 kornia
 numpy
 streamlit_local_storage
+streamlit_back_camera_input
