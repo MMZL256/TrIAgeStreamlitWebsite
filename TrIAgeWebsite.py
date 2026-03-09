@@ -110,6 +110,7 @@ enable = st.checkbox("Activer la caméra")
 backCamera = st.checkbox("Utiliser la caméra arrière")
 if backCamera:
     wastePicture_buffer = back_camera_input()
+    st.write("Tapez l'écran pour prendre une photo")
 else:
     wastePicture_buffer = st.camera_input(key="cameraInput", label="Prenez une photo de l'objet:", disabled=not enable)
 output = None
@@ -171,6 +172,7 @@ with st.expander("Voir les statistiques"):
     st.write("10 points par compostable, 10 points par contenant consigné, 5 points par recyclable, 1 point par déchet")
 
 "Dernière mise à jour: 7 mars 2026"
+
 
 
 
