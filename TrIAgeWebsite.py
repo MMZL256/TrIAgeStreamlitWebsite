@@ -135,25 +135,26 @@ if wastePicture_buffer is not None:
     localStorage.setItem("total", totalNum+1, key='set_total')
     if predictedClass in ["JuiceBoxLaterals", "JuiceBoxTops", "MilkBoxes", 
                             "SnackPackages"]:
-        st.header(":blue-background[Recyclage]")
+        #st.header(":blue-background[Recyclage]")
         #st.info(":blue-background[Recyclage]")
+        st.markdown("""<p­­ style="font-size: 100px;">Recyclage</p>""", unsafe_allow_html = True)
         st.write("Type d'objet détecté: " + frPredictedClass)
         if predictedClass in ["JuiceBoxLaterals", "JuiceBoxTops"]:
             st.write("La paille en papier va au compost!")
         localStorage.setItem("recycling", recycled+1, key='set_recycling')
     elif predictedClass in ["BananaPeels", "UsedPaper"]:
-        st.header(":orange-background[Compost]")
+        #st.header(":orange-background[Compost]")
         #st.info(":orange-background[Compost]")
         st.write("Type d'objet détecté: " + frPredictedClass)
         localStorage.setItem("compost", composted+1, key='set_compost')
     elif predictedClass in ["CansLaterals", "CansTops", "JuiceBottlesLaterals",
                             "JuiceBottlesTops"]:
-        st.header(":green-background[Contenants consignés]")
+        #st.header(":green-background[Contenants consignés]")
         #st.info(":green-background[Contenants consignés]")
         st.write("Type d'objet détecté: " + frPredictedClass)
         localStorage.setItem("consigning", consigned+1, key='set_consigning')
     elif predictedClass in ["Shoes"]:
-        st.header(":gray-background[Déchets]")
+        #st.header(":gray-background[Déchets]")
         #st.info(":gray-background[Déchets]")
         st.write("Type d'objet détecté: " + frPredictedClass)
         localStorage.setItem("trash", trashed+1, key="set_trash")
@@ -175,6 +176,7 @@ with st.expander("Voir les statistiques"):
     st.write("10 points par compostable, 10 points par contenant consigné, 5 points par recyclable, 1 point par déchet")
 
 "Dernière mise à jour: 7 mars 2026"
+
 
 
 
