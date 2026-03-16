@@ -173,6 +173,10 @@ with st.expander("Voir les statistiques"):
     st.write(":gray-background[Déchets] ", trashed)
     st.write(":rainbow-background[POINTAGE]", 10*composted + 10*consigned + 5*recycled + trashed)
     st.write("10 points par compostable, 10 points par contenant consigné, 5 points par recyclable, 1 point par déchet")
+with st.expander("Voir votre effet"):
+    "Voici les effets de votre tri:"
+    st.write(f":green-background[Argent amassé (contenants consignés)] {consigned*0.1:.2f}$")
+    st.write(f":orange-background[Émissions de méthane évitées (compost)] {composted*0.75:.2f}g")
 
 "Dernière mise à jour: 7 mars 2026"
 
