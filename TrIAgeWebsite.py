@@ -177,7 +177,7 @@ with st.expander("Voir votre effet"):
     "Voici les effets de votre tri:"
     st.write(f":green-background[Argent amassé (contenants consignés)] {consigned*0.1:.2f}$")
     st.write(f":orange-background[Émissions de GES évitées (compost)] {composted*6.5:.2f}g CO2-e")
-    st.write(f":blue-background[Émissions de GES évitées (recyclage)] {recycled*24.6:.2f}g CO2-e")
+    st.write(f":blue-background[Émissions de GES évitées (recyclage)] {(recycled+consigned)*24.6:.2f}g CO2-e")
 
 "Dernière mise à jour: 7 mars 2026"
 
