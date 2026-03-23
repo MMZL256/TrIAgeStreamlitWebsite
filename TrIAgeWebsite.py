@@ -95,7 +95,7 @@ def get_model():
 st.set_page_config(page_title="CSL TrIAge", page_icon="♻️", layout="wide")
 
 st.title("Opération TrIAge")
-"Ceci est un site en développement. Modèle présentement utilisé: wasteClassAD"
+"Alpha v0.0.0 - Modèle présentement utilisé: wasteClassAD"
 
 localStorage = LocalStorage()
 totalNum = localStorage.getItem("total") if localStorage.getItem("total") else 0
